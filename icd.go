@@ -1,10 +1,11 @@
-
 package main
 
 import (
-	"fmt"
-
-	"code.cloudfoundry.org/cli/plugin"
+    "fmt"
+    "net/http"
+    "encoding/json"
+    "io/ioutil"
+    "code.cloudfoundry.org/cli/plugin"
 )
 
 // BasicPlugin is the struct implementing the interface defined by the core CLI. It can
@@ -24,29 +25,60 @@ type ICDPlugin struct{}
 // user facing errors). The CLI will exit 0 if the plugin exits 0 and will exit
 // 1 should the plugin exits nonzero.
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-	// Ensure that we called the command basic-plugin-command
-	if args[0] == "icd" && len(args) > 1{
-	   fmt.Println("Running the IBM Continuous Delivery command");
+    // Ensure that we called the command basic-plugin-command
+    if args[0] == "icd" && len(args) > 1{
+       fmt.Println("Running the IBM Continuous Delivery command");
            at, aterr := cliConnection.AccessToken();
            if aterr != nil {
               fmt.Println("AT Err: ", aterr);
            } else {
-              fmt.Println(at);
+              client := &http.Client{}
+
+              url := "https://otc-api.stage1.ng.bluemix.net/api/v1/toolchains";
+              //resp, err := client.Get(url);
+
+              req, err := http.NewRequest("GET", url, nil)
+              req.Header.Add("Authorization", at)
+              resp, err := client.Do(req)
+              defer resp.Body.Close()
+              body, err := ioutil.ReadAll(resp.Body)
+              type Toolchain struct {
+                  toolchain_guid string
+                  name string
+                  description string
+                  key string
+                  organization_guid string
+                  created string
+                  creator string
+                  generator string
+                  tags []string
+                  lifecycle_messaging_webhook_id string
+              }
+              type Toolchains struct {
+                  total_results string
+                  items []Toolchain
+              }
+              //var toolchain_list Toolchains
+              //errs := json.Unmarshal(body, &toolchain_list);
+              var dat map[string]interface{}
+              errs := json.Unmarshal(body, &dat);
+ 
+              //fmt.Printf("%+v", toolchain_list) 
+              fmt.Println(dat["total_results"])
+              //fmt.Println(string(body))
+              fmt.Println(errs)
+              fmt.Println(err)
            }
            output, err := cliConnection.CliCommand(args[1:]...);
-    	   // The call to plugin.CliCommand() returns an error if the cli command
-	   // returns a non-zero return code. The output written by the CLI
-	   // is returned in any case.
-	   if err != nil {
-		fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
-		fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
-	   }
+           // The call to plugin.CliCommand() returns an error if the cli command
+       // returns a non-zero return code. The output written by the CLI
+       // is returned in any case.
+       if err != nil {
+        fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
+        fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
+       }
 
-	   // Print the output returned from the CLI command.
-           //for i := range output {
-           //   fmt.Println(output[i]);
-           //}
-	}
+    }
 }
 
 // GetMetadata must be implemented as part of the plugin interface
@@ -62,31 +94,31 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 // second field, HelpText, is used by the core CLI to display help information
 // to the user in the core commands `cf help`, `cf`, or `cf -h`.
 func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
-	return plugin.PluginMetadata{
-		Name: "IBM Continuous Delivery",
-		Version: plugin.VersionType{
-			Major: 0,
-			Minor: 0,
-			Build: 1,
-		},
-		MinCliVersion: plugin.VersionType{
-			Major: 6,
-			Minor: 7,
-			Build: 0,
-		},
-		Commands: []plugin.Command{
-			{
-				Name:     "icd",
-				HelpText: "IBM Continous Delivery plugin command's help text",
+    return plugin.PluginMetadata{
+        Name: "IBM Continuous Delivery",
+        Version: plugin.VersionType{
+            Major: 0,
+            Minor: 0,
+            Build: 1,
+        },
+        MinCliVersion: plugin.VersionType{
+            Major: 6,
+            Minor: 7,
+            Build: 0,
+        },
+        Commands: []plugin.Command{
+            {
+                Name:     "icd",
+                HelpText: "IBM Continous Delivery plugin command's help text",
 
-				// UsageDetails is optional
-				// It is used to show help of usage of each command
-				UsageDetails: plugin.Usage{
-					Usage: "IBM Continous Delivery:\n   cf icd",
-				},
-			},
-		},
-	}
+                // UsageDetails is optional
+                // It is used to show help of usage of each command
+                UsageDetails: plugin.Usage{
+                    Usage: "IBM Continous Delivery:\n   cf icd",
+                },
+            },
+        },
+    }
 }
 
 // Unlike most Go programs, the `Main()` function will not be used to run all of the
@@ -94,15 +126,15 @@ func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
 // process, as well as any dependencies you might require for your
 // plugin.
 func main() {
-	// Any initialization for your plugin can be handled here
-	//
-	// Note: to run the plugin.Start method, we pass in a pointer to the struct
-	// implementing the interface defined at "code.cloudfoundry.org/cli/plugin/plugin.go"
-	//
-	// Note: The plugin's main() method is invoked at install time to collect
-	// metadata. The plugin will exit 0 and the Run([]string) method will not be
-	// invoked.
-	plugin.Start(new(ICDPlugin))
-	// Plugin code should be written in the Run([]string) method,
-	// ensuring the plugin environment is bootstrapped.
+    // Any initialization for your plugin can be handled here
+    //
+    // Note: to run the plugin.Start method, we pass in a pointer to the struct
+    // implementing the interface defined at "code.cloudfoundry.org/cli/plugin/plugin.go"
+    //
+    // Note: The plugin's main() method is invoked at install time to collect
+    // metadata. The plugin will exit 0 and the Run([]string) method will not be
+    // invoked.
+    plugin.Start(new(ICDPlugin))
+    // Plugin code should be written in the Run([]string) method,
+    // ensuring the plugin environment is bootstrapped.
 }
