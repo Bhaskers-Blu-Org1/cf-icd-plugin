@@ -42,30 +42,16 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
               resp, err := client.Do(req)
               defer resp.Body.Close()
               body, err := ioutil.ReadAll(resp.Body)
-              type Toolchain struct {
-                  toolchain_guid string
-                  name string
-                  description string
-                  key string
-                  organization_guid string
-                  created string
-                  creator string
-                  generator string
-                  tags []string
-                  lifecycle_messaging_webhook_id string
-              }
-              type Toolchains struct {
-                  total_results string
-                  items []Toolchain
-              }
-              //var toolchain_list Toolchains
-              //errs := json.Unmarshal(body, &toolchain_list);
               var dat map[string]interface{}
               errs := json.Unmarshal(body, &dat);
  
-              //fmt.Printf("%+v", toolchain_list) 
               fmt.Println(dat["total_results"])
-              //fmt.Println(string(body))
+              strs := dat["items"].([]interface{})
+              str1 := strs[0].(map[string]interface {})
+              fmt.Println(str1["toolchain_guid"])
+              //for idx, val := range dat["items"] {
+              //    fmt.Println(val["toolchain_guid"])
+              //}
               fmt.Println(errs)
               fmt.Println(err)
            }
