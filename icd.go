@@ -44,22 +44,23 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     var appname = ""
     var tcid = ""
     var args2 = make([]string, 0)
+    var idx2 = 0
     for idx := range args {
-       fmt.Println(args[idx])
        if args[idx] == "push" {
           appname = args[idx+1]
        }
        if args[idx] == "--app" {
           appname= args[idx+1]
           idx += 1
+          continue
        }
        if args[idx] == "--tcid" {
           tcid = args[idx+1]
-          idx += 2
+          idx += 1
+          continue
        }
-       if idx < len(args) {
-          args2 = append(args2, args[idx])
-       }
+       args2[idx2] = args[idx]
+       idx2++
     }
     fmt.Println(args2)
 
