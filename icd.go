@@ -41,25 +41,44 @@ func Request(url string, cliConnection plugin.CliConnection) (*map[string]interf
 }
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-    if args[0] == "icd" && len(args) > 1 && args[1] == "-tcid" {
-       fmt.Println("Running the IBM Continuous Delivery command");
+    var appname = ""
+    var tcid = ""
+    var args2 = make([]string, 0)
+    for idx := range args {
+       fmt.Println(args[idx])
+       if args[idx] == "push" {
+          appname = args[idx+1]
+       }
+       if args[idx] == "--app" {
+          appname= args[idx+1]
+          idx += 1
+       }
+       if args[idx] == "--tcid" {
+          tcid = args[idx+1]
+          idx += 2
+       }
+       if idx < len(args) {
+          args2 = append(args2, args[idx])
+       }
+    }
+    fmt.Println(args2)
+
+    output, err := cliConnection.CliCommand(args2[1:]...);
+    if err != nil {
+      fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
+      fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
+    }
+
+    if args[0] == "icd" && len(args) > 1 && tcid != "" && appname != "" {
+       output, err := cliConnection.CliCommand("app " + appname + "--guid");
+       fmt.Println(output)
+       fmt.Println(err)
        urlbase := "https://otc-api.stage1.ng.bluemix.net/api/v1/";
-       dat, err := Request(urlbase + "toolchains/" + args[2] + "/services", cliConnection)
+       dat, err := Request(urlbase + "toolchains/" + tcid + "/services", cliConnection)
        if err != nil {
           fmt.Println("err: ", err)
        }
        fmt.Println(*dat)
-
-       output, err := cliConnection.CliCommand(args[3:]...);
-       if err != nil {
-        fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
-        fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
-       } else {
-          output, err := cliConnection.CliCommand("apps");
-          fmt.Println(output)
-          fmt.Println(err)
-       }
-
     }
 }
 
