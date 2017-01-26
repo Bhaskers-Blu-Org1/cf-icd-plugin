@@ -8,57 +8,58 @@ import (
     "code.cloudfoundry.org/cli/plugin"
 )
 
-// BasicPlugin is the struct implementing the interface defined by the core CLI. It can
-// be found at  "code.cloudfoundry.org/cli/plugin/plugin.go"
 type ICDPlugin struct{}
 
-// Run must be implemented by any plugin because it is part of the
-// plugin interface defined by the core CLI.
-//
-// Run(....) is the entry point when the core CLI is invoking a command defined
-// by a plugin. The first parameter, plugin.CliConnection, is a struct that can
-// be used to invoke cli commands. The second paramter, args, is a slice of
-// strings. args[0] will be the name of the command, and will be followed by
-// any additional arguments a cli user typed in.
-//
-// Any error handling should be handled with the plugin itself (this means printing
-// user facing errors). The CLI will exit 0 if the plugin exits 0 and will exit
-// 1 should the plugin exits nonzero.
+func Request(url string, cliConnection plugin.CliConnection) (*map[string]interface{}, error) {
+    at, aterr := cliConnection.AccessToken();
+    var dat map[string]interface{}
+    if aterr != nil {
+       fmt.Println("AT Err: ", aterr);
+       return &dat, aterr;
+    } else {
+       client := &http.Client{}
+       req, err := http.NewRequest("GET", url, nil)
+       if err != nil {
+          return &dat, err
+       }
+       req.Header.Add("Authorization", at)
+       resp, err := client.Do(req)
+       if err != nil {
+          return &dat, err
+       }
+       defer resp.Body.Close()
+       body, err := ioutil.ReadAll(resp.Body)
+       if err != nil {
+          return &dat, err
+       }
+       errs := json.Unmarshal(body, &dat);
+       if errs != nil {
+          return &dat, errs
+       }
+    }
+    return &dat, nil
+}
+
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-    // Ensure that we called the command basic-plugin-command
-    if args[0] == "icd" && len(args) > 1{
+    if args[0] == "icd" && len(args) > 1 && args[1] == "-tcid" {
        fmt.Println("Running the IBM Continuous Delivery command");
-           at, aterr := cliConnection.AccessToken();
-           if aterr != nil {
-              fmt.Println("AT Err: ", aterr);
-           } else {
-              client := &http.Client{}
-
-              url := "https://otc-api.stage1.ng.bluemix.net/api/v1/toolchains";
-              //resp, err := client.Get(url);
-
-              req, err := http.NewRequest("GET", url, nil)
-              req.Header.Add("Authorization", at)
-              resp, err := client.Do(req)
-              defer resp.Body.Close()
-              body, err := ioutil.ReadAll(resp.Body)
-              var dat map[string]interface{}
-              errs := json.Unmarshal(body, &dat);
+       urlbase := "https://otc-api.stage1.ng.bluemix.net/api/v1/";
+       dat, err := Request(urlbase + "toolchains", cliConnection)
  
-              fmt.Println(dat["total_results"])
-              strs := dat["items"].([]interface{})
-              str1 := strs[0].(map[string]interface {})
-              fmt.Println(str1["toolchain_guid"])
-              //for idx, val := range dat["items"] {
-              //    fmt.Println(val["toolchain_guid"])
-              //}
-              fmt.Println(errs)
-              fmt.Println(err)
-           }
-           output, err := cliConnection.CliCommand(args[1:]...);
-           // The call to plugin.CliCommand() returns an error if the cli command
-       // returns a non-zero return code. The output written by the CLI
-       // is returned in any case.
+       fmt.Println((*dat)["total_results"])
+       strs := (*dat)["items"].([]interface{})
+       for idx := range strs {
+          str1 := strs[idx].(map[string]interface {})
+          var tcguid = str1["toolchain_guid"].(string);
+          fmt.Println(tcguid)
+          dat, err := Request(urlbase + "toolchains/" + tcguid + "/services", cliConnection)
+          if err != nil {
+             fmt.Println("err: ", err)
+          }
+          fmt.Println(*dat)
+       }
+
+       output, err := cliConnection.CliCommand(args[3:]...);
        if err != nil {
         fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
         fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
