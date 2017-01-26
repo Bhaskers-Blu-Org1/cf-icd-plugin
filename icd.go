@@ -44,42 +44,25 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 1 && args[1] == "-tcid" {
        fmt.Println("Running the IBM Continuous Delivery command");
        urlbase := "https://otc-api.stage1.ng.bluemix.net/api/v1/";
-       dat, err := Request(urlbase + "toolchains", cliConnection)
- 
-       fmt.Println((*dat)["total_results"])
-       strs := (*dat)["items"].([]interface{})
-       for idx := range strs {
-          str1 := strs[idx].(map[string]interface {})
-          var tcguid = str1["toolchain_guid"].(string);
-          fmt.Println(tcguid)
-          dat, err := Request(urlbase + "toolchains/" + tcguid + "/services", cliConnection)
-          if err != nil {
-             fmt.Println("err: ", err)
-          }
-          fmt.Println(*dat)
+       dat, err := Request(urlbase + "toolchains/" + args[2] + "/services", cliConnection)
+       if err != nil {
+          fmt.Println("err: ", err)
        }
+       fmt.Println(*dat)
 
        output, err := cliConnection.CliCommand(args[3:]...);
        if err != nil {
         fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
         fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
+       } else {
+          output, err := cliConnection.CliCommand("apps");
+          fmt.Println(output)
+          fmt.Println(err)
        }
 
     }
 }
 
-// GetMetadata must be implemented as part of the plugin interface
-// defined by the core CLI.
-//
-// GetMetadata() returns a PluginMetadata struct. The first field, Name,
-// determines the name of the plugin which should generally be without spaces.
-// If there are spaces in the name a user will need to properly quote the name
-// during uninstall otherwise the name will be treated as seperate arguments.
-// The second value is a slice of Command structs. Our slice only contains one
-// Command Struct, but could contain any number of them. The first field Name
-// defines the command `cf basic-plugin-command` once installed into the CLI. The
-// second field, HelpText, is used by the core CLI to display help information
-// to the user in the core commands `cf help`, `cf`, or `cf -h`.
 func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
     return plugin.PluginMetadata{
         Name: "IBM Continuous Delivery",
