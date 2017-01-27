@@ -4,6 +4,7 @@ import (
     "fmt"
     "bytes"
     "net/http"
+    "encoding/json"
     "syscall"
     "os"
     "io/ioutil"
@@ -28,7 +29,6 @@ func WebhookConfigFile() (*os.File) {
     var webhookConfigFile = os.TempDir() + "webhook"
     var file *os.File
     var mode = os.FileMode(int(0600))
-    var err error
     if _, err := os.Stat(webhookConfigFile); os.IsNotExist(err) {
        file, err = os.Create(webhookConfigFile)
        check(err)
@@ -51,7 +51,6 @@ func WebhookConfig() (string) {
     var webhookConfigFile = os.TempDir() + "webhook"
     dat, err := ioutil.ReadFile(webhookConfigFile)
     check(err)
-    fmt.Print(string(dat))
     return string(dat)
 }
 
@@ -62,27 +61,31 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             fmt.Println("Error: https required");
             return;
         }
-        var file, err = WebhookConfigFile()
-        check(err)
+        var file = WebhookConfigFile()
         (*file).WriteString(webhook)
-        err = (*file).Close()
+        err := (*file).Close()
         check(err)
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
         check(err)
         whcfg := WebhookConfig()
-        fmt.Println(whcfg)
-
-        var amp = map[string]interface{}
-        for idx, val := range args {
-            fmt.Println(idx)
-            fmt.Println(val)
+        fmt.Println(output)
+        type Message struct {
+            mtype string
+            output []string
+            args []string
         }
-        var jsonStr = `{"title":"Buy cheese and bread for breakfast."}`
-        var buf = bytes.NewBufferString(jsonStr)
+        amp := Message {
+            mtype: "cf_command",
+            output: output,
+            args: args[1:],
+        }
+        js, err := json.Marshal(amp)
+        check(err)
+        fmt.Println(string(js))
+        var buf = bytes.NewBufferString(string(js))
 
-        resp := Request(whcfg, "POST", buf)
-        fmt.Println(resp)
+        Request(whcfg, "POST", buf)
     }
 }
 
