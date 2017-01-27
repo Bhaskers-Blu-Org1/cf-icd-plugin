@@ -4,7 +4,6 @@ import (
     "fmt"
     "net/http"
     "os"
-    "encoding/json"
     "io/ioutil"
     "code.cloudfoundry.org/cli/plugin"
 )
@@ -27,10 +26,7 @@ func Request(url string) (*map[string]interface{}, error) {
     if err != nil {
        return &dat, err
     }
-    errs := json.Unmarshal(body, &dat);
-    if errs != nil {
-       return &dat, errs
-    }
+    fmt.Println(body)
     return &dat, nil
 }
 
@@ -41,18 +37,20 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             fmt.Println("Error: https required");
             return;
         }
+        os.Setenv("ICD_WEBHOOK", webhook)
         fmt.Println(os.Environ())
-        dat, err := Request(webhook)
-        if err != nil {
-           fmt.Println("err: ", err)
-        }
-        fmt.Println(*dat)
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
         if err != nil {
           fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
           fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
         }
+        fmt.Println(os.Environ())
+        dat, err := Request(os.Getenv("ICD_WEBHOOK"))
+        if err != nil {
+           fmt.Println("err: ", err)
+        }
+        fmt.Println(*dat)
     }
 }
 
