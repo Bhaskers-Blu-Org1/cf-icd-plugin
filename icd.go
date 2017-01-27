@@ -43,24 +43,14 @@ func Request(url string, cliConnection plugin.CliConnection) (*map[string]interf
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     var appname = ""
     var tcid = ""
-    var args2 = make([]string, 0)
-    var idx2 = 0
+    var args2 = make([]string,0)
     for idx := range args {
-       if args[idx] == "push" {
-          appname = args[idx+1]
-       }
-       if args[idx] == "--app" {
-          appname= args[idx+1]
-          idx += 1
-          continue
-       }
-       if args[idx] == "--tcid" {
+       if args[idx] == "--create-deployable-mapping" {
           tcid = args[idx+1]
           idx += 1
-          continue
+       } else {
+          args2 = append(args2[:len(args2)], args[:idx-1]...)
        }
-       args2[idx2] = args[idx]
-       idx2++
     }
     fmt.Println(args2)
 
@@ -70,7 +60,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
       fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
     }
 
-    if args[0] == "icd" && len(args) > 1 && tcid != "" && appname != "" {
+    if args[0] == "icd" && len(args2) > 1 && tcid != "" {
        output, err := cliConnection.CliCommand("app " + appname + "--guid");
        fmt.Println(output)
        fmt.Println(err)
