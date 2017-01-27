@@ -37,8 +37,9 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             fmt.Println("Error: https required");
             return;
         }
-        os.Setenv("ICD_WEBHOOK", webhook)
-        fmt.Println(os.Environ())
+        output, err := cliConnection.CliCommand("cups", "icd_webook", "-p", "'{\"webhook\": \"" + webhook + "\"}'");
+        fmt.Println(output)
+        fmt.Println(err)
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
         if err != nil {
