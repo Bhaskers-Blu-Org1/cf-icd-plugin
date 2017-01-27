@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "net/http"
+    "syscall"
     "os"
     "io/ioutil"
     "code.cloudfoundry.org/cli/plugin"
@@ -30,6 +31,37 @@ func Request(url string) (*map[string]interface{}, error) {
     return &dat, nil
 }
 
+func WebhookConfigFile() (*os.File, error) {
+    var webhookConfigFile = os.TempDir() + "webhook"
+    var file *os.File
+    var mode = os.FileMode(int(0600))
+    var err error
+    if _, err := os.Stat(webhookConfigFile); os.IsNotExist(err) {
+       file, err = os.Create(webhookConfigFile)
+       if err != nil {
+          return nil, err
+       }
+       err = (*file).Chmod(mode)
+    } else {
+       file, err = os.OpenFile(webhookConfigFile, syscall.O_RDWR, mode)
+    }
+    return file, err
+}
+
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
+func WebhookConfig() (string) {
+    var webhookConfigFile = os.TempDir() + "webhook"
+    dat, err := ioutil.ReadFile(webhookConfigFile)
+    check(err)
+    fmt.Print(string(dat))
+    return string(dat)
+}
+
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
         var webhook = args[2]
@@ -37,21 +69,30 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             fmt.Println("Error: https required");
             return;
         }
-        output, err := cliConnection.CliCommand("cups", "icd_webook", "-p", "'{\"webhook\": \"" + webhook + "\"}'");
-        fmt.Println(output)
-        fmt.Println(err)
+        var file, err = WebhookConfigFile()
+        if err != nil {
+           fmt.Println("Error: ", err)
+           return
+        }
+        (*file).WriteString(webhook)
+        err = (*file).Close()
+        fmt.Println("Error: ", err)
+        if err != nil {
+           fmt.Println("Error: ", err)
+           return
+        }
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
         if err != nil {
           fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
           fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
         }
-        fmt.Println(os.Environ())
-        dat, err := Request(os.Getenv("ICD_WEBHOOK"))
+        whcfg := WebhookConfig()
         if err != nil {
-           fmt.Println("err: ", err)
+           fmt.Println("Error: ", err)
+           return
         }
-        fmt.Println(*dat)
+        fmt.Println(whcfg)
     }
 }
 
