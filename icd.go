@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "net/http"
+    "os"
     "encoding/json"
     "io/ioutil"
     "code.cloudfoundry.org/cli/plugin"
@@ -10,19 +11,12 @@ import (
 
 type ICDPlugin struct{}
 
-func Request(url string, headers *map[string]interface{}) (*map[string]interface{}, error) {
+func Request(url string) (*map[string]interface{}, error) {
     var dat map[string]interface{}
     client := &http.Client{}
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
        return &dat, err
-    }
-    if headers != nil {
-      for header, idx := range *headers {
-         //req.Header.Add(header[idx]["name"], header["value"])
-         fmt.Println(header)
-         fmt.Println(idx)
-      }
     }
     resp, err := client.Do(req)
     if err != nil {
@@ -43,7 +37,12 @@ func Request(url string, headers *map[string]interface{}) (*map[string]interface
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
         var webhook = args[2]
-        dat, err := Request(webhook, nil)
+        if webhook[:5] != "https" {
+            fmt.Println("Error: https required");
+            return;
+        }
+        fmt.Println(os.Environ())
+        dat, err := Request(webhook)
         if err != nil {
            fmt.Println("err: ", err)
         }
