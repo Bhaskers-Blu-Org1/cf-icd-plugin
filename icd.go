@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "bytes"
     "net/http"
     "syscall"
     "os"
@@ -11,41 +12,33 @@ import (
 
 type ICDPlugin struct{}
 
-func Request(url string) (*map[string]interface{}, error) {
-    var dat map[string]interface{}
+func Request(url string, method string, buf *bytes.Buffer) (string) {
     client := &http.Client{}
-    req, err := http.NewRequest("GET", url, nil)
-    if err != nil {
-       return &dat, err
-    }
+    req, err := http.NewRequest(method, url, buf)
+    check(err)
     resp, err := client.Do(req)
-    if err != nil {
-       return &dat, err
-    }
+    check(err)
     defer resp.Body.Close()
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-       return &dat, err
-    }
-    fmt.Println(body)
-    return &dat, nil
+    check(err)
+    return string(body)
 }
 
-func WebhookConfigFile() (*os.File, error) {
+func WebhookConfigFile() (*os.File) {
     var webhookConfigFile = os.TempDir() + "webhook"
     var file *os.File
     var mode = os.FileMode(int(0600))
     var err error
     if _, err := os.Stat(webhookConfigFile); os.IsNotExist(err) {
        file, err = os.Create(webhookConfigFile)
-       if err != nil {
-          return nil, err
-       }
+       check(err)
        err = (*file).Chmod(mode)
+       check(err)
     } else {
        file, err = os.OpenFile(webhookConfigFile, syscall.O_RDWR, mode)
+       check(err)
     }
-    return file, err
+    return file
 }
 
 func check(e error) {
@@ -70,29 +63,26 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             return;
         }
         var file, err = WebhookConfigFile()
-        if err != nil {
-           fmt.Println("Error: ", err)
-           return
-        }
+        check(err)
         (*file).WriteString(webhook)
         err = (*file).Close()
-        fmt.Println("Error: ", err)
-        if err != nil {
-           fmt.Println("Error: ", err)
-           return
-        }
+        check(err)
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
-        if err != nil {
-          fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
-          fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
-        }
+        check(err)
         whcfg := WebhookConfig()
-        if err != nil {
-           fmt.Println("Error: ", err)
-           return
-        }
         fmt.Println(whcfg)
+
+        var amp = map[string]interface{}
+        for idx, val := range args {
+            fmt.Println(idx)
+            fmt.Println(val)
+        }
+        var jsonStr = `{"title":"Buy cheese and bread for breakfast."}`
+        var buf = bytes.NewBufferString(jsonStr)
+
+        resp := Request(whcfg, "POST", buf)
+        fmt.Println(resp)
     }
 }
 
@@ -124,20 +114,6 @@ func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
     }
 }
 
-// Unlike most Go programs, the `Main()` function will not be used to run all of the
-// commands provided in your plugin. Main will be used to initialize the plugin
-// process, as well as any dependencies you might require for your
-// plugin.
 func main() {
-    // Any initialization for your plugin can be handled here
-    //
-    // Note: to run the plugin.Start method, we pass in a pointer to the struct
-    // implementing the interface defined at "code.cloudfoundry.org/cli/plugin/plugin.go"
-    //
-    // Note: The plugin's main() method is invoked at install time to collect
-    // metadata. The plugin will exit 0 and the Run([]string) method will not be
-    // invoked.
     plugin.Start(new(ICDPlugin))
-    // Plugin code should be written in the Run([]string) method,
-    // ensuring the plugin environment is bootstrapped.
 }
