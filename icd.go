@@ -11,7 +11,7 @@ import (
 type ICDPlugin struct{}
 
 func Request(url string, headers *map[string]interface{}) (*map[string]interface{}, error) {
-    var dat
+    var dat map[string]interface{}
     client := &http.Client{}
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
@@ -39,13 +39,13 @@ func Request(url string, headers *map[string]interface{}) (*map[string]interface
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
         var webhook = args[2]
-        dat, err := Request(webhook)
+        dat, err := Request(webhook, nil)
         if err != nil {
            fmt.Println("err: ", err)
         }
         fmt.Println(*dat)
     } else {
-        output, err := cliConnection.CliCommand(args2[1:]...);
+        output, err := cliConnection.CliCommand(args[1:]...);
         if err != nil {
           fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
           fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
