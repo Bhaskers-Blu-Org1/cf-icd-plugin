@@ -17,8 +17,12 @@ func Request(url string, headers *map[string]interface{}) (*map[string]interface
     if err != nil {
        return &dat, err
     }
-    for name, value := range *headers {
-       req.Header.Add(name, value)
+    if headers != nil {
+      for header, idx := range *headers {
+         //req.Header.Add(header[idx]["name"], header["value"])
+         fmt.Println(header)
+         fmt.Println(idx)
+      }
     }
     resp, err := client.Do(req)
     if err != nil {
