@@ -10,66 +10,46 @@ import (
 
 type ICDPlugin struct{}
 
-func Request(url string, cliConnection plugin.CliConnection) (*map[string]interface{}, error) {
-    at, aterr := cliConnection.AccessToken();
-    var dat map[string]interface{}
-    if aterr != nil {
-       fmt.Println("AT Err: ", aterr);
-       return &dat, aterr;
-    } else {
-       client := &http.Client{}
-       req, err := http.NewRequest("GET", url, nil)
-       if err != nil {
-          return &dat, err
-       }
-       req.Header.Add("Authorization", at)
-       resp, err := client.Do(req)
-       if err != nil {
-          return &dat, err
-       }
-       defer resp.Body.Close()
-       body, err := ioutil.ReadAll(resp.Body)
-       if err != nil {
-          return &dat, err
-       }
-       errs := json.Unmarshal(body, &dat);
-       if errs != nil {
-          return &dat, errs
-       }
+func Request(url string, headers *map[string]interface{}) (*map[string]interface{}, error) {
+    var dat
+    client := &http.Client{}
+    req, err := http.NewRequest("GET", url, nil)
+    if err != nil {
+       return &dat, err
+    }
+    for name, value := range *headers {
+       req.Header.Add(name, value)
+    }
+    resp, err := client.Do(req)
+    if err != nil {
+       return &dat, err
+    }
+    defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+       return &dat, err
+    }
+    errs := json.Unmarshal(body, &dat);
+    if errs != nil {
+       return &dat, errs
     }
     return &dat, nil
 }
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-    var appname = ""
-    var tcid = ""
-    var args2 = make([]string,0)
-    for idx := range args {
-       if args[idx] == "--create-deployable-mapping" {
-          tcid = args[idx+1]
-          idx += 1
-       } else {
-          args2 = append(args2[:len(args2)], args[:idx-1]...)
-       }
-    }
-    fmt.Println(args2)
-
-    output, err := cliConnection.CliCommand(args2[1:]...);
-    if err != nil {
-      fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
-      fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
-    }
-
-    if args[0] == "icd" && len(args2) > 1 && tcid != "" {
-       output, err := cliConnection.CliCommand("app " + appname + "--guid");
-       fmt.Println(output)
-       fmt.Println(err)
-       urlbase := "https://otc-api.stage1.ng.bluemix.net/api/v1/";
-       dat, err := Request(urlbase + "toolchains/" + tcid + "/services", cliConnection)
-       if err != nil {
-          fmt.Println("err: ", err)
-       }
-       fmt.Println(*dat)
+    if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
+        var webhook = args[2]
+        dat, err := Request(webhook)
+        if err != nil {
+           fmt.Println("err: ", err)
+        }
+        fmt.Println(*dat)
+    } else {
+        output, err := cliConnection.CliCommand(args2[1:]...);
+        if err != nil {
+          fmt.Println("PLUGIN OUTPUT: Output from CliCommand: ", output)
+          fmt.Println("PLUGIN ERROR: Error from CliCommand: ", err)
+        }
     }
 }
 
