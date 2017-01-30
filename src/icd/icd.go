@@ -4,7 +4,7 @@ import (
     "fmt"
     "bytes"
     "encoding/json"
-    "icdlib"
+    "webhook"
     "code.cloudfoundry.org/cli/plugin"
 )
 
@@ -12,36 +12,37 @@ type ICDPlugin struct{}
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
-        var webhook = args[2]
-        if webhook[:5] != "https" {
+        var webhook_url = args[2]
+        if webhook_url[:5] != "https" {
             fmt.Println("Error: https required");
             return;
         }
-        var file = icdlib.WebhookConfigFile()
-        (*file).WriteString(webhook)
+        var file = webhook.ConfigFile()
+        (*file).WriteString(webhook_url)
         err := (*file).Close()
-        icdlib.Check(err)
+        check(err)
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
-        icdlib.Check(err)
-        whcfg := icdlib.WebhookConfig()
+        check(err)
+        whcfg := webhook.Config()
         fmt.Println(output)
         type Message struct {
-            mtype string
-            output []string
-            args []string
+            Mtype string
+            Output []string
+            Args []string
         }
         amp := Message {
-            mtype: "cf_command",
-            output: output,
-            args: args[1:],
+            Mtype: "cf_command",
+            Output: output,
+            Args: args[1:],
         }
+        fmt.Println(amp)
         js, err := json.Marshal(amp)
-        icdlib.Check(err)
-        fmt.Println(string(js))
+        check(err)
+        fmt.Println(js)
         var buf = bytes.NewBufferString(string(js))
 
-        icdlib.Request(whcfg, "POST", buf)
+        webhook.Request(whcfg, "POST", buf)
     }
 }
 
@@ -70,6 +71,12 @@ func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
                 },
             },
         },
+    }
+}
+
+func check(e error) {
+    if e != nil {
+        panic(e)
     }
 }
 
