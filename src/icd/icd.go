@@ -3,27 +3,15 @@ package main
 import (
     "fmt"
     "bytes"
-    "net/http"
     "encoding/json"
     "syscall"
     "os"
+    "icdlib"
     "io/ioutil"
     "code.cloudfoundry.org/cli/plugin"
 )
 
 type ICDPlugin struct{}
-
-func Request(url string, method string, buf *bytes.Buffer) (string) {
-    client := &http.Client{}
-    req, err := http.NewRequest(method, url, buf)
-    check(err)
-    resp, err := client.Do(req)
-    check(err)
-    defer resp.Body.Close()
-    body, err := ioutil.ReadAll(resp.Body)
-    check(err)
-    return string(body)
-}
 
 func WebhookConfigFile() (*os.File) {
     var webhookConfigFile = os.TempDir() + "webhook"
@@ -85,7 +73,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         fmt.Println(string(js))
         var buf = bytes.NewBufferString(string(js))
 
-        Request(whcfg, "POST", buf)
+        icdlib.Request(whcfg, "POST", buf)
     }
 }
 
