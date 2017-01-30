@@ -6,6 +6,7 @@ import (
     "encoding/json"
     "webhook"
     "code.cloudfoundry.org/cli/plugin"
+    "code.cloudfoundry.org/cli/plugin/models"
 )
 
 type ICDPlugin struct{}
@@ -25,21 +26,34 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         output, err := cliConnection.CliCommand(args[1:]...);
         check(err)
         whcfg := webhook.Config()
-        fmt.Println(output)
+        current_org, err := cliConnection.GetCurrentOrg()
+        check(err)
+        current_space, err := cliConnection.GetCurrentSpace()
+        check(err)
+        apiEndpoint, err := cliConnection.ApiEndpoint()
+        check(err)
+        current_apps, err := cliConnection.GetApps()
+        check(err)
         type Message struct {
             Mtype string
             Output []string
             Args []string
+            Org plugin_models.Organization
+            Space plugin_models.Space
+            Apps []plugin_models.GetAppsModel
+            ApiEndpoint string
         }
         amp := Message {
             Mtype: "cf_command",
             Output: output,
             Args: args[1:],
+            Org: current_org,
+            Space: current_space,
+            Apps: current_apps,
+            ApiEndpoint: apiEndpoint,
         }
-        fmt.Println(amp)
         js, err := json.Marshal(amp)
         check(err)
-        fmt.Println(js)
         var buf = bytes.NewBufferString(string(js))
 
         webhook.Request(whcfg, "POST", buf)
