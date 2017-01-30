@@ -4,43 +4,11 @@ import (
     "fmt"
     "bytes"
     "encoding/json"
-    "syscall"
-    "os"
     "icdlib"
-    "io/ioutil"
     "code.cloudfoundry.org/cli/plugin"
 )
 
 type ICDPlugin struct{}
-
-func WebhookConfigFile() (*os.File) {
-    var webhookConfigFile = os.TempDir() + "webhook"
-    var file *os.File
-    var mode = os.FileMode(int(0600))
-    if _, err := os.Stat(webhookConfigFile); os.IsNotExist(err) {
-       file, err = os.Create(webhookConfigFile)
-       check(err)
-       err = (*file).Chmod(mode)
-       check(err)
-    } else {
-       file, err = os.OpenFile(webhookConfigFile, syscall.O_RDWR, mode)
-       check(err)
-    }
-    return file
-}
-
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
-
-func WebhookConfig() (string) {
-    var webhookConfigFile = os.TempDir() + "webhook"
-    dat, err := ioutil.ReadFile(webhookConfigFile)
-    check(err)
-    return string(dat)
-}
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
@@ -49,14 +17,14 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             fmt.Println("Error: https required");
             return;
         }
-        var file = WebhookConfigFile()
+        var file = icdlib.WebhookConfigFile()
         (*file).WriteString(webhook)
         err := (*file).Close()
-        check(err)
+        icdlib.Check(err)
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
-        check(err)
-        whcfg := WebhookConfig()
+        icdlib.Check(err)
+        whcfg := icdlib.WebhookConfig()
         fmt.Println(output)
         type Message struct {
             mtype string
@@ -69,7 +37,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             args: args[1:],
         }
         js, err := json.Marshal(amp)
-        check(err)
+        icdlib.Check(err)
         fmt.Println(string(js))
         var buf = bytes.NewBufferString(string(js))
 
