@@ -34,6 +34,8 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         check(err)
         current_apps, err := cliConnection.GetApps()
         check(err)
+        current_token, err := cliConnection.AccessToken()
+        check(err)
         type Message struct {
             Mtype string
             Output []string
@@ -42,6 +44,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             Space plugin_models.Space
             Apps []plugin_models.GetAppsModel
             ApiEndpoint string
+            AccessToken string
         }
         amp := Message {
             Mtype: "cf_command",
@@ -51,7 +54,9 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             Space: current_space,
             Apps: current_apps,
             ApiEndpoint: apiEndpoint,
+            AccessToken: current_token,
         }
+        fmt.Println(amp.Org)
         js, err := json.Marshal(amp)
         check(err)
         var buf = bytes.NewBufferString(string(js))

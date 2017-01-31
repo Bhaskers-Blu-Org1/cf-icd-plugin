@@ -19,7 +19,10 @@ func Request(url string, method string, buf *bytes.Buffer) (string) {
     check(err)
     return string(body)
 }
-
+/**
+* TODO: This needs to secure the webhook before storing or move
+* the function to a vault
+*/
 func ConfigFile() (*os.File) {
     var webhookConfigFile = os.TempDir() + "webhook"
     var file *os.File
