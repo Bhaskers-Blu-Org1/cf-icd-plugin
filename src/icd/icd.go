@@ -16,7 +16,10 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         tcName := args[2]
         appName := args[3]
         output, err := cliConnection.CliCommand(["otc", "list-toolchains");
+        var dat map[string]interface{}
+        err := json.Unmarshal(byte[]output, &dat)
         check(err)
+        fmt.Println(string(dat))
         whcfg, err := webhook.Config()
         current_org, err := cliConnection.GetCurrentOrg()
         check(err)
