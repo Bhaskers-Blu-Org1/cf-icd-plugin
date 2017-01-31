@@ -12,12 +12,10 @@ import (
 type ICDPlugin struct{}
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-    if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
-        var webhook_url = args[2]
-        err := webhook.Register(webhook_url)
-        check(err)
-    } else {
-        output, err := cliConnection.CliCommand(args[1:]...);
+    if args[0] == "icd" && len(args) > 2 && args[1] == "--create-connection" {
+        tcName := args[2]
+        appName := args[3]
+        output, err := cliConnection.CliCommand(["otc", "list-toolchains");
         check(err)
         whcfg, err := webhook.Config()
         current_org, err := cliConnection.GetCurrentOrg()

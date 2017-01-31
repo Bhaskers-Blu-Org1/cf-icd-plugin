@@ -31,7 +31,8 @@ func Register(webhook_url string) error {
         return err
     }
     var file = ConfigFile()
-    (*file).WriteString(webhook_url)
+    err = (*file).Truncate(0)
+    _, err = (*file).WriteString(webhook_url)
     err = (*file).Close()
     return err
 }
