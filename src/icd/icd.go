@@ -4,7 +4,6 @@ import (
     "fmt"
     "bytes"
     "encoding/json"
-    "webhook"
     "code.cloudfoundry.org/cli/plugin"
     "code.cloudfoundry.org/cli/plugin/models"
 )
@@ -12,50 +11,37 @@ import (
 type ICDPlugin struct{}
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-    if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
-        var webhook_url = args[2]
-        err := webhook.Register(webhook_url)
-        check(err)
-    } else {
-        output, err := cliConnection.CliCommand(args[1:]...);
-        check(err)
-        whcfg, err := webhook.Config()
+    if args[0] == "icd" && len(args) > 2 && args[1] == "--connections" {
+        app_name := args[2]
         current_org, err := cliConnection.GetCurrentOrg()
         check(err)
         current_space, err := cliConnection.GetCurrentSpace()
         check(err)
         apiEndpoint, err := cliConnection.ApiEndpoint()
         check(err)
-        current_apps, err := cliConnection.GetApps()
+        connections_app, err := cliConnection.GetApp(app_name)
         check(err)
         current_token, err := cliConnection.AccessToken()
         check(err)
         type Message struct {
-            Mtype string
-            Output []string
-            Args []string
             Org plugin_models.Organization
             Space plugin_models.Space
-            Apps []plugin_models.GetAppsModel
+            App plugin_models.GetAppModel
             ApiEndpoint string
             AccessToken string
         }
         amp := Message {
-            Mtype: "cf_command",
-            Output: output,
-            Args: args[1:],
             Org: current_org,
             Space: current_space,
-            Apps: current_apps,
+            App: connections_app,
             ApiEndpoint: apiEndpoint,
             AccessToken: current_token,
         }
-        fmt.Println(amp.Org)
         js, err := json.Marshal(amp)
         check(err)
         var buf = bytes.NewBufferString(string(js))
-
-        webhook.Request(whcfg, "POST", buf)
+        fmt.Println(buf)
+        //webhook.Request(whcfg, "POST", buf)
     }
 }
 
