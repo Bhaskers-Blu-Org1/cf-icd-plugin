@@ -1,4 +1,4 @@
-package main
+package icd
 
 import (
     "fmt"
@@ -14,18 +14,12 @@ type ICDPlugin struct{}
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--register-webhook" {
         var webhook_url = args[2]
-        if webhook_url[:5] != "https" {
-            fmt.Println("Error: https required");
-            return;
-        }
-        var file = webhook.ConfigFile()
-        (*file).WriteString(webhook_url)
-        err := (*file).Close()
+        err := webhook.Register(webhook_url)
         check(err)
     } else {
         output, err := cliConnection.CliCommand(args[1:]...);
         check(err)
-        whcfg := webhook.Config()
+        whcfg, err := webhook.Config()
         current_org, err := cliConnection.GetCurrentOrg()
         check(err)
         current_space, err := cliConnection.GetCurrentSpace()

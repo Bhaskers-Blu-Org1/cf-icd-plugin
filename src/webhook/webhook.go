@@ -5,6 +5,7 @@ import (
     "net/http"
     "syscall"
     "os"
+    "errors"
     "io/ioutil"
 )
 
@@ -19,6 +20,22 @@ func Request(url string, method string, buf *bytes.Buffer) (string) {
     check(err)
     return string(body)
 }
+
+/**
+* Register new webhook
+*/
+func Register(webhook_url string) error {
+    var err error
+    if webhook_url[:5] != "https" {
+        err = errors.New("Error: https required")
+        return err
+    }
+    var file = ConfigFile()
+    (*file).WriteString(webhook_url)
+    err = (*file).Close()
+    return err
+}
+
 /**
 * TODO: This needs to secure the webhook before storing or move
 * the function to a vault
@@ -39,11 +56,10 @@ func ConfigFile() (*os.File) {
     return file
 }
 
-func Config() (string) {
+func Config() (string, error) {
     var webhookConfigFile = os.TempDir() + "webhook"
     dat, err := ioutil.ReadFile(webhookConfigFile)
-    check(err)
-    return string(dat)
+    return string(dat), err
 }
 
 func check(e error) {
