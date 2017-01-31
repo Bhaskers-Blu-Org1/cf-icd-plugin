@@ -15,9 +15,9 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--create-connection" {
         tcName := args[2]
         appName := args[3]
-        output, err := cliConnection.CliCommand(["otc", "list-toolchains");
+        output, err := cliConnection.CliCommand("otc list-toolchains");
         var dat map[string]interface{}
-        err := json.Unmarshal(byte[]output, &dat)
+        err := json.Unmarshal(bytes(output), &dat)
         check(err)
         fmt.Println(string(dat))
         whcfg, err := webhook.Config()
