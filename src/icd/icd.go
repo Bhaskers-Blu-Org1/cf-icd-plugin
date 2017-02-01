@@ -12,11 +12,11 @@ import (
 type ICDPlugin struct{}
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-    if args[0] == "icd" && len(args) > 2 && args[1] == "--create-connection" {
-        tcName := args[2]
-        appName := args[3]
-        fmt.Println("t: %s, a: %s", tcName, appName)
-        whcfg, err := webhook.Config()
+    if args[0] == "icd" && len(args) > 3 && args[1] == "--create-connection" {
+        webhook_url := args[2]
+        tcName := args[3]
+        appName := args[4]
+        fmt.Println("w: %s, t: %s, a: %s", webhook_url, tcName, appName)
         current_org, err := cliConnection.GetCurrentOrg()
         check(err)
         current_space, err := cliConnection.GetCurrentSpace()
@@ -46,7 +46,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         check(err)
         var buf = bytes.NewBufferString(string(js))
 
-        webhook.Request(whcfg, "POST", buf)
+        webhook.Request(webhook_url, "POST", buf)
     }
 }
 
