@@ -12,34 +12,29 @@ import (
 type ICDPlugin struct{}
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
-    if args[0] == "icd" && len(args) > 3 && args[1] == "--create-connection" {
+    if args[0] == "icd" && len(args) > 2 && args[1] == "--create-connection" {
         webhook_url := args[2]
-        tcName := args[3]
-        appName := args[4]
-        fmt.Println("w: %s, t: %s, a: %s", webhook_url, tcName, appName)
+        appName := args[3]
+        fmt.Println("w: %s, a: %s", webhook_url, appName)
         current_org, err := cliConnection.GetCurrentOrg()
         check(err)
         current_space, err := cliConnection.GetCurrentSpace()
         check(err)
         apiEndpoint, err := cliConnection.ApiEndpoint()
         check(err)
-        current_apps, err := cliConnection.GetApps()
-        check(err)
-        current_token, err := cliConnection.AccessToken()
+        current_app, err := cliConnection.GetApp(appName)
         check(err)
         type Message struct {
             Org plugin_models.Organization
             Space plugin_models.Space
-            Apps []plugin_models.GetAppsModel
+            App plugin_models.GetAppModel
             ApiEndpoint string
-            AccessToken string
         }
         amp := Message {
             Org: current_org,
             Space: current_space,
-            Apps: current_apps,
+            App: current_app,
             ApiEndpoint: apiEndpoint,
-            AccessToken: current_token,
         }
         fmt.Println(amp.Org)
         js, err := json.Marshal(amp)
