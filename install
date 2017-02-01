@@ -1,3 +1,4 @@
+rm -rf bin pkg
 go build webhook
 go install icd
 cp bin/icd ~/.cf/plugins

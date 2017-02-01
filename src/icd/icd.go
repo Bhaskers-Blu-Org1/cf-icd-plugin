@@ -1,4 +1,4 @@
-package icd
+package main
 
 import (
     "fmt"
@@ -15,11 +15,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--create-connection" {
         tcName := args[2]
         appName := args[3]
-        output, err := cliConnection.CliCommand("otc list-toolchains");
-        var dat map[string]interface{}
-        err := json.Unmarshal(bytes(output), &dat)
-        check(err)
-        fmt.Println(string(dat))
+        fmt.Println("t: %s, a: %s", tcName, appName)
         whcfg, err := webhook.Config()
         current_org, err := cliConnection.GetCurrentOrg()
         check(err)
@@ -32,9 +28,6 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         current_token, err := cliConnection.AccessToken()
         check(err)
         type Message struct {
-            Mtype string
-            Output []string
-            Args []string
             Org plugin_models.Organization
             Space plugin_models.Space
             Apps []plugin_models.GetAppsModel
@@ -42,9 +35,6 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             AccessToken string
         }
         amp := Message {
-            Mtype: "cf_command",
-            Output: output,
-            Args: args[1:],
             Org: current_org,
             Space: current_space,
             Apps: current_apps,
