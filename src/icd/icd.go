@@ -53,7 +53,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             Method: method,
             Token: at,
         }
-        fmt.Println(amp.Org)
+        fmt.Println(amp)
         js, err := json.Marshal(amp)
         check(err)
         var buf = bytes.NewBufferString(string(js))
