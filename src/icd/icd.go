@@ -34,16 +34,12 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         check(err)
         current_app, err := cliConnection.GetApp(appName)
         check(err)
-        //temporary measure only for demo, use TIAM instead on server side
-        at, err := cliConnection.AccessToken()
-        check(err)
         type Message struct {
             Org plugin_models.Organization
             Space plugin_models.Space
             App plugin_models.GetAppModel
             ApiEndpoint string
             Method string
-            Token string
         }
         amp := Message {
             Org: current_org,
@@ -51,14 +47,13 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             App: current_app,
             ApiEndpoint: apiEndpoint,
             Method: method,
-            Token: at,
         }
         fmt.Println(amp)
         js, err := json.Marshal(amp)
         check(err)
         var buf = bytes.NewBufferString(string(js))
 
-        webhook.Request(webhook_url, "POST", buf)
+        webhook.Request(webhook_url, method, buf)
     }
 }
 

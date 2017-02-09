@@ -13,6 +13,7 @@ func Request(url string, method string, buf *bytes.Buffer) (string) {
     client := &http.Client{}
     req, err := http.NewRequest(method, url, buf)
     check(err)
+    req.Header.Add("x-create-connection", "true")
     resp, err := client.Do(req)
     check(err)
     defer resp.Body.Close()
