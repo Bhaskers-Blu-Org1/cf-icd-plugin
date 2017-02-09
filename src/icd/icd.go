@@ -53,7 +53,8 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         check(err)
         var buf = bytes.NewBufferString(string(js))
 
-        webhook.Request(webhook_url, method, buf)
+        body := webhook.Request(webhook_url, method, buf)
+        fmt.Println(body)
     }
 }
 

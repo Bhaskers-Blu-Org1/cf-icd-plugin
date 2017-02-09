@@ -14,6 +14,7 @@ func Request(url string, method string, buf *bytes.Buffer) (string) {
     req, err := http.NewRequest(method, url, buf)
     check(err)
     req.Header.Add("x-create-connection", "true")
+    req.Header.Add("content-type", "application/json")
     resp, err := client.Do(req)
     check(err)
     defer resp.Body.Close()
