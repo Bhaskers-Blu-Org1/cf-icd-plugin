@@ -11,6 +11,21 @@ import (
 
 type ICDPlugin struct{}
 
+type GitValues struct {
+    GitURL string
+    GitBranch string
+    GitCommitID string
+}
+
+func GitInfo () (GitValues, error) {
+   result := GitValues {
+      GitURL: "https://github.com/",
+      GitBranch: "master",
+      GitCommitID: "123",
+   }
+   return result, nil
+}
+
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     var shouldRequest bool = false
     var method string = "POST"
@@ -34,12 +49,15 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
         check(err)
         current_app, err := cliConnection.GetApp(appName)
         check(err)
+        git_info, err := GitInfo()
+        check(err)
         type Message struct {
             Org plugin_models.Organization
             Space plugin_models.Space
             App plugin_models.GetAppModel
             ApiEndpoint string
             Method string
+            GitData GitValues
         }
         amp := Message {
             Org: current_org,
@@ -47,6 +65,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             App: current_app,
             ApiEndpoint: apiEndpoint,
             Method: method,
+            GitData: git_info,
         }
         fmt.Println(amp)
         js, err := json.Marshal(amp)
