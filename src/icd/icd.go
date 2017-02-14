@@ -4,7 +4,6 @@ import (
     "fmt"
     "bytes"
     "encoding/json"
-    "webhook"
     "code.cloudfoundry.org/cli/plugin"
     "code.cloudfoundry.org/cli/plugin/models"
 )
