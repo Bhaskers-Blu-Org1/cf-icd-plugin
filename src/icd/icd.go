@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "bytes"
+    "strings"
     "webhook"
     "encoding/json"
     "io/ioutil"
@@ -19,26 +20,26 @@ type GitValues struct {
 }
 
 func GitInfo () (GitValues, error) {
-    cmd := exec.Command("pwd")
-    var out bytes.Buffer
-    cmd.Stdout = &out
-    err := cmd.Run()
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Printf("in all caps: %q\n", out.String())
-
     files, err := ioutil.ReadDir(".")
     if err != nil {
-	log.Fatal(err)
+        fmt.Println(err)
     }
 
     for _, file := range files {
         fmt.Println(file.Name())
+        if file.Name() == ".git" {
+           head, err := ioutil.ReadFile(".git/HEAD")
+           check(err)
+           fmt.Println(string(head))
+           parts := strings.Split(string(head), "/")
+           branch_name := parts[len(parts) - 1]
+           fmt.Println(branch_name)
+           id, err := ioutil.ReadFile(".git/refs/heads/" + strings.Trim(branch_name, "\n\r \b"))
+           check(err)
+           fmt.Println(string(id))
+           break
+        }
     }
-   //tst, err := ioutil.ReadFile("./.git/HEAD")
-   //check(err)
-   //fmt.Println(string(tst))
 
    result := GitValues {
       GitURL: "https://github.com/",
