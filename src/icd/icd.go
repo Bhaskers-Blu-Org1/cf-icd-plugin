@@ -2,7 +2,6 @@ package main
 
 import (
     "fmt"
-    "log"
     "bytes"
     "strings"
     "webhook"
@@ -25,29 +24,22 @@ func GitInfo () (GitValues, error) {
     _, err := ioutil.ReadDir(".git")
     var result GitValues
     if err == nil {
-        head, err := ioutil.ReadFile(".git/HEAD")
-        check(err)
-        fmt.Println(string(head))
-        parts := strings.Split(string(head), "/")
-        branch_name := strings.Trim(parts[len(parts) - 1], "\n\r \b")
-        fmt.Println(branch_name)
-        id, err := ioutil.ReadFile(".git/refs/heads/" + branch_name)
-        check(err)
-        fmt.Println(string(id))
-        cmd := exec.Command("git", "config", "--get", "remote.origin.url")
         var out bytes.Buffer
+        cmd := exec.Command("git", "branch", "-v")
         cmd.Stdout = &out
         err = cmd.Run()
-        if err != nil {
-            log.Fatal(err)
-        }
-        fmt.Printf("in all caps: %q\n", out.String())
+        check(err)
+        head := strings.Trim(out.String(), "\n\r \b")
+        fmt.Println(string(head))
+        cmd = exec.Command("git", "config", "--get", "remote.origin.url")
+        cmd.Stdout = &out
+        err = cmd.Run()
+        check(err)
         remote_url := strings.Trim(out.String(), "\n\r \b")
-        commit_id := strings.Trim(string(id), "\n\r \b")
         result = GitValues {
             GitURL: remote_url,
-            GitBranch: branch_name,
-            GitCommitID: commit_id,
+            GitBranch: head,
+            GitCommitID: head,
         }
     }
     return result, nil
