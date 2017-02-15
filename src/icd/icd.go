@@ -2,9 +2,11 @@ package main
 
 import (
     "fmt"
+    "log"
     "bytes"
     "strings"
     "webhook"
+    "os/exec"
     "encoding/json"
     "io/ioutil"
     "code.cloudfoundry.org/cli/plugin"
@@ -21,24 +23,34 @@ type GitValues struct {
 
 func GitInfo () (GitValues, error) {
     _, err := ioutil.ReadDir(".git")
+    var result GitValues
     if err == nil {
         head, err := ioutil.ReadFile(".git/HEAD")
         check(err)
         fmt.Println(string(head))
         parts := strings.Split(string(head), "/")
-        branch_name := parts[len(parts) - 1]
+        branch_name := strings.Trim(parts[len(parts) - 1], "\n\r \b")
         fmt.Println(branch_name)
-        id, err := ioutil.ReadFile(".git/refs/heads/" + strings.Trim(branch_name, "\n\r \b"))
+        id, err := ioutil.ReadFile(".git/refs/heads/" + branch_name)
         check(err)
         fmt.Println(string(id))
+        cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+        var out bytes.Buffer
+        cmd.Stdout = &out
+        err = cmd.Run()
+        if err != nil {
+            log.Fatal(err)
+        }
+        fmt.Printf("in all caps: %q\n", out.String())
+        remote_url := strings.Trim(out.String(), "\n\r \b")
+        commit_id := strings.Trim(string(id), "\n\r \b")
+        result = GitValues {
+            GitURL: remote_url,
+            GitBranch: branch_name,
+            GitCommitID: commit_id,
+        }
     }
-
-   result := GitValues {
-      GitURL: "https://github.com/",
-      GitBranch: "master",
-      GitCommitID: "123",
-   }
-   return result, nil
+    return result, nil
 }
 
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
@@ -48,7 +60,9 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
        shouldRequest = true
        method = "POST"
     } else if args[0] == "icd" && len(args) > 1 && args[1] == "--git-info" {
-       GitInfo()
+       res, err := GitInfo()
+       check(err)
+       fmt.Println(res)
     } else if args[0] == "icd" && len(args) > 2 && args[1] == "--delete-connection" {
        shouldRequest = true
        method = "DELETE"
