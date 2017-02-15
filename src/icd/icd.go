@@ -5,6 +5,7 @@ import (
     "bytes"
     "webhook"
     "encoding/json"
+    "io/ioutil"
     "code.cloudfoundry.org/cli/plugin"
     "code.cloudfoundry.org/cli/plugin/models"
 )
@@ -18,6 +19,27 @@ type GitValues struct {
 }
 
 func GitInfo () (GitValues, error) {
+    cmd := exec.Command("pwd")
+    var out bytes.Buffer
+    cmd.Stdout = &out
+    err := cmd.Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("in all caps: %q\n", out.String())
+
+    files, err := ioutil.ReadDir(".")
+    if err != nil {
+	log.Fatal(err)
+    }
+
+    for _, file := range files {
+        fmt.Println(file.Name())
+    }
+   //tst, err := ioutil.ReadFile("./.git/HEAD")
+   //check(err)
+   //fmt.Println(string(tst))
+
    result := GitValues {
       GitURL: "https://github.com/",
       GitBranch: "master",
@@ -32,6 +54,8 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     if args[0] == "icd" && len(args) > 2 && args[1] == "--create-connection" {
        shouldRequest = true
        method = "POST"
+    } else if args[0] == "icd" && len(args) > 1 && args[1] == "--git-info" {
+       GitInfo()
     } else if args[0] == "icd" && len(args) > 2 && args[1] == "--delete-connection" {
        shouldRequest = true
        method = "DELETE"
