@@ -1,4 +1,4 @@
-package main_test
+package main
 
 import (
     "testing"
@@ -6,6 +6,25 @@ import (
 )
 
 var TEST_PORT = "6490"
+
+func TestGitInfo(t *testing.T) {
+    t.Run("Test gitinfo", func(t *testing.T) {
+        //test git config
+        gitinf, err := GitInfo()
+        if err != nil {
+           t.Errorf("Expected successful git info: %s", err)
+        }
+        if gitinf.GitURL != "https://github.com/" {
+           t.Errorf("Unexpected git info URL: %s", gitinf.GitURL)
+        }
+        if gitinf.GitCommitID != "123" {
+           t.Errorf("Unexpected git info commit ID: %s", gitinf.GitCommitID)
+        }
+        if gitinf.GitBranch != "master" {
+           t.Errorf("Unexpected git info branch: %s", gitinf.GitBranch)
+        }
+    })
+}
 
 func TestRegisterWebhook(t *testing.T) {
     t.Run("Test --register-webhook", func(t *testing.T) {
