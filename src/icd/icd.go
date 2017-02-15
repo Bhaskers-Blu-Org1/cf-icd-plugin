@@ -20,25 +20,17 @@ type GitValues struct {
 }
 
 func GitInfo () (GitValues, error) {
-    files, err := ioutil.ReadDir(".")
-    if err != nil {
-        fmt.Println(err)
-    }
-
-    for _, file := range files {
-        fmt.Println(file.Name())
-        if file.Name() == ".git" {
-           head, err := ioutil.ReadFile(".git/HEAD")
-           check(err)
-           fmt.Println(string(head))
-           parts := strings.Split(string(head), "/")
-           branch_name := parts[len(parts) - 1]
-           fmt.Println(branch_name)
-           id, err := ioutil.ReadFile(".git/refs/heads/" + strings.Trim(branch_name, "\n\r \b"))
-           check(err)
-           fmt.Println(string(id))
-           break
-        }
+    _, err := ioutil.ReadDir(".git")
+    if err == nil {
+        head, err := ioutil.ReadFile(".git/HEAD")
+        check(err)
+        fmt.Println(string(head))
+        parts := strings.Split(string(head), "/")
+        branch_name := parts[len(parts) - 1]
+        fmt.Println(branch_name)
+        id, err := ioutil.ReadFile(".git/refs/heads/" + strings.Trim(branch_name, "\n\r \b"))
+        check(err)
+        fmt.Println(string(id))
     }
 
    result := GitValues {
