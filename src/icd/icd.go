@@ -21,16 +21,17 @@ type GitValues struct {
 }
 
 func GitInfo () (GitValues, error) {
-    _, err := ioutil.ReadDir(".git")
+    refs, err := ioutil.ReadDir(".git/refs/remotes/origin")
     var result GitValues
     if err == nil {
         var out bytes.Buffer
-        cmd := exec.Command("git", "branch", "-v")
+        cmd := exec.Command("cat", ".git/HEAD")
         cmd.Stdout = &out
         err = cmd.Run()
         check(err)
         head := strings.Trim(out.String(), "\n\r \b")
         fmt.Println(string(head))
+        _, err := ioutil.ReadDir(".git/")
         cmd = exec.Command("git", "config", "--get", "remote.origin.url")
         cmd.Stdout = &out
         err = cmd.Run()
