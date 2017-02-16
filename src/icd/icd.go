@@ -20,27 +20,31 @@ type GitValues struct {
     GitCommitID string
 }
 
-func GitInfo () (GitValues, error) {
-    refs, err := ioutil.ReadDir(".git/refs/remotes/origin")
-    var result GitValues
+func GitInfo () ([]GitValues, error) {
+    root_dir := ".git/refs/remotes/origin"
+    files, err := ioutil.ReadDir(root_dir)
+    var result []GitValues
     if err == nil {
+        result = make([]GitValues, len(files))
         var out bytes.Buffer
-        cmd := exec.Command("cat", ".git/HEAD")
-        cmd.Stdout = &out
-        err = cmd.Run()
-        check(err)
-        head := strings.Trim(out.String(), "\n\r \b")
-        fmt.Println(string(head))
-        _, err := ioutil.ReadDir(".git/")
-        cmd = exec.Command("git", "config", "--get", "remote.origin.url")
-        cmd.Stdout = &out
-        err = cmd.Run()
-        check(err)
-        remote_url := strings.Trim(out.String(), "\n\r \b")
-        result = GitValues {
-            GitURL: remote_url,
-            GitBranch: head,
-            GitCommitID: head,
+        i := 0
+        for _, file := range files {
+            cmd := exec.Command("cat", root_dir + "/" + file.Name())
+            cmd.Stdout = &out
+            err = cmd.Run()
+            check(err)
+            head := strings.Trim(out.String(), "\n\r \b")
+            cmd = exec.Command("git", "config", "--get", "remote.origin.url")
+            cmd.Stdout = &out
+            err = cmd.Run()
+            check(err)
+            remote_url := strings.Trim(out.String(), "\n\r \b")
+            result[i] = GitValues {
+                GitURL: remote_url,
+                GitBranch: file.Name(),
+                GitCommitID: head,
+            }
+            i += 1
         }
     }
     return result, nil
@@ -81,7 +85,7 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
             App plugin_models.GetAppModel
             ApiEndpoint string
             Method string
-            GitData GitValues
+            GitData []GitValues
         }
         amp := Message {
             Org: current_org,
