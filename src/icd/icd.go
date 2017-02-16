@@ -26,19 +26,20 @@ func GitInfo () ([]GitValues, error) {
     var result []GitValues
     if err == nil {
         result = make([]GitValues, len(files))
-        var out bytes.Buffer
         i := 0
         for _, file := range files {
             cmd := exec.Command("cat", root_dir + "/" + file.Name())
-            cmd.Stdout = &out
+            var out1 bytes.Buffer
+            cmd.Stdout = &out1
             err = cmd.Run()
             check(err)
-            head := strings.Trim(out.String(), "\n\r \b")
+            head := strings.Trim(out1.String(), "\n\r \b")
             cmd = exec.Command("git", "config", "--get", "remote.origin.url")
-            cmd.Stdout = &out
+            var out2 bytes.Buffer
+            cmd.Stdout = &out2
             err = cmd.Run()
             check(err)
-            remote_url := strings.Trim(out.String(), "\n\r \b")
+            remote_url := strings.Trim(out2.String(), "\n\r \b")
             result[i] = GitValues {
                 GitURL: remote_url,
                 GitBranch: file.Name(),
