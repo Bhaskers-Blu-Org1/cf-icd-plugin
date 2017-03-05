@@ -1,0 +1,7 @@
+---
+applications:
+  - name: icd
+    command: icd
+    memory: 64M
+    env:
+      GOPACKAGENAME: icd
