@@ -9,4 +9,7 @@ COPY src /app/icd/src
 WORKDIR /app/icd
 ENV PATH /
 ENV GOPATH /app/icd/vendor:/app/icd
-RUN go
+RUN go get github.com/cloudfoundry/cli
+ENV GOOS window
+ENV GOARCH amd64
+RUN go build -o bin/win64 icd
