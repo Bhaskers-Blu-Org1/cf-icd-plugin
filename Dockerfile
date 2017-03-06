@@ -10,6 +10,12 @@ WORKDIR /app/icd
 ENV PATH $PATH:/usr/local/go/bin 
 ENV GOPATH /app/icd/vendor:/app/icd
 RUN go get github.com/cloudfoundry/cli
+ENV GOOS linux
+ENV GOARCH amd64
+RUN go build -o bin/linux64/icd icd
+ENV GOOS darwin
+ENV GOARCH amd64
+RUN go build -o bin/osx64/icd icd
 ENV GOOS windows
 ENV GOARCH amd64
 RUN go build -o bin/win64/icd icd
