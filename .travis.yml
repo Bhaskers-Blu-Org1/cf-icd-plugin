@@ -8,9 +8,9 @@ services:
    docker
 
 before_install:
-   docker build -t cf_icd_plugin .
-   docker cp cf_icd_plugin:/app/icd/bin ./build_bin
+   - docker build -t cf_icd_plugin .
+   - docker cp cf_icd_plugin:/app/icd/bin ./build_bin
 
 install:
-   ls -al .
-   ls -al ./build_bin
+   - ls -al .
+   - ls -al ./build_bin
