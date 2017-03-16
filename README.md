@@ -18,4 +18,4 @@ and <cf app name> is the Cloudfoundry application name which deployed successful
 cf icd --delete-connection <webhook> <cf app name>
 ```
 Where <webhook> is the URL supplied shown in your toolchain configuration page for Jenkins broker
-and <cf app name> is the Cloudfoundry application name which deployed removed
+and <cf app name> is the Cloudfoundry application name which deployed removed.
