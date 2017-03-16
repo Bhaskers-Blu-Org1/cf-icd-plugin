@@ -7,5 +7,16 @@ language: bash
 services:
    docker
 
-before_install:
-   - docker build -t cf_icd_plugin .
+install:
+   - ./build
+
+deploy:
+  provider: releases
+  api_key: $OAUTH_TOKEN
+  file:
+    - ./build_bin/icd_osx
+    - ./build_bin/icd_win64.exe
+    - ./build_bin/icd_linux64
+  skip_cleanup: true
+  on:
+    tags: true

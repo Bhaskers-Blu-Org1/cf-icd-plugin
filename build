@@ -1,0 +1,7 @@
+#!/bin/bash
+
+./clean
+docker build -t cf_icd_plugin .
+docker create --name cf_icd_plugin cf_icd_plugin tail -F -n0 /etc/hosts
+docker start cf_icd_plugin
+docker cp cf_icd_plugin:/app/icd/bin ./build_bin
