@@ -20,9 +20,9 @@ deploy:
   provider: releases
   api_key: $OAUTH_TOKEN
   file:
-    - ./build_bin/win64/icd
-    - ./build_bin/osx64/icd
-    - ./build_bin/linux64/icd
+    - ./build_bin/icd_osx
+    - ./build_bin/icd_win64.exe
+    - ./build_bin/icd_linux64
   skip_cleanup: true
   on:
     tags: true
