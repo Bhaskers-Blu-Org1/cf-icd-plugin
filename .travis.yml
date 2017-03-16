@@ -9,7 +9,8 @@ services:
 
 before_install:
    - docker build -t cf_icd_plugin .
-   - docker run -it --name cf_icd_plugin cf_icd_plugin tail -F -n0 /etc/hosts
+   - docker create --name cf_icd_plugin cf_icd_plugin tail -F -n0 /etc/hosts
+   - docker start cf_icd_plugin
    - docker ps -a
    - docker cp cf_icd_plugin:/app/icd/bin ./build_bin
 
