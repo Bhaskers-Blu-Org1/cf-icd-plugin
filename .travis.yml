@@ -11,9 +11,18 @@ before_install:
    - docker build -t cf_icd_plugin .
    - docker create --name cf_icd_plugin cf_icd_plugin tail -F -n0 /etc/hosts
    - docker start cf_icd_plugin
-   - docker ps -a
    - docker cp cf_icd_plugin:/app/icd/bin ./build_bin
 
 install:
-   - ls -al .
    - ls -al ./build_bin
+
+deploy:
+  provider: releases
+  api_key: $OAUTH_TOKEN
+  file:
+    - ./build_bin/win64/icd
+    - ./build_bin/osx64/icd
+    - ./build_bin/linux64/icd
+  skip_cleanup: true
+  on:
+    tags: true
