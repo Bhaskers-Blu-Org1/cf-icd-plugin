@@ -1,0 +1,5 @@
+#!/bin/bash
+
+docker stop cf_icd_plugin
+docker rm cf_icd_plugin
+docker rm -rf ./build_bin
