@@ -18,6 +18,7 @@
 
 import (
     "fmt"
+    "os"
     "bytes"
     "strings"
     "webhook"
@@ -70,16 +71,18 @@ func GitInfo () ([]GitValues, error) {
 func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
     var shouldRequest bool = false
     var method string = "POST"
-    if args[0] == "icd" && len(args) > 2 && args[1] == "--create-connection" {
+    if args[0] == "icd" && len(args) == 4 && args[1] == "--create-connection" {
        shouldRequest = true
        method = "POST"
     } else if args[0] == "icd" && len(args) > 1 && args[1] == "--git-info" {
        res, err := GitInfo()
        check(err)
        fmt.Println(res)
-    } else if args[0] == "icd" && len(args) > 2 && args[1] == "--delete-connection" {
+    } else if args[0] == "icd" && len(args) == 4 && args[1] == "--delete-connection" {
        shouldRequest = true
        method = "DELETE"
+    } else {
+        fmt.Println("Enter a command. See cf icd --help for possible commands")
     }
 
     if (shouldRequest) {
@@ -138,12 +141,16 @@ func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
         Commands: []plugin.Command{
             {
                 Name:     "icd",
-                HelpText: "IBM Continous Delivery plugin command's help text",
+                HelpText: "IBM Cloud Devops plugin command's help text",
 
                 // UsageDetails is optional
                 // It is used to show help of usage of each command
                 UsageDetails: plugin.Usage{
-                    Usage: "IBM Continous Delivery:\n   cf icd",
+                    Usage: "cf icd [Options]",
+					Options: map[string]string{
+						"-create-connection [webhook_url] [app_name]": "Create a connection between a cf app and IBM toolchain",
+						"-delete-connection [webhook_url] [app_name]": "Delete a connection",
+					},
                 },
             },
         },
@@ -152,7 +159,9 @@ func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
 
 func check(e error) {
     if e != nil {
-        panic(e)
+        fmt.Println("Warning: cf plugin icd operation not successful: %s",e)
+        os.Exit(0)
+        //panic(e)
     }
 }
 
