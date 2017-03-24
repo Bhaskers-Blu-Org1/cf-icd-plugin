@@ -127,11 +127,11 @@ func (c *ICDPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 
 func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
     return plugin.PluginMetadata{
-        Name: "IBM Continuous Delivery",
+        Name: "IBM Cloud Devops",
         Version: plugin.VersionType{
             Major: 0,
             Minor: 0,
-            Build: 1,
+            Build: 10,
         },
         MinCliVersion: plugin.VersionType{
             Major: 6,
