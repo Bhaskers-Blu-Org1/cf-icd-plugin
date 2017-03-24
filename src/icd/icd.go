@@ -130,7 +130,7 @@ func (c *ICDPlugin) GetMetadata() plugin.PluginMetadata {
         Name: "IBM Cloud Devops",
         Version: plugin.VersionType{
             Major: 0,
-            Minor: 9,
+            Minor: 0,
             Build: 10,
         },
         MinCliVersion: plugin.VersionType{
