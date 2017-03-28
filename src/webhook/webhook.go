@@ -17,6 +17,7 @@
  package webhook
 
 import (
+    "fmt"
     "bytes"
     "net/http"
     "syscall"
@@ -83,6 +84,8 @@ func Config() (string, error) {
 
 func check(e error) {
     if e != nil {
-        panic(e)
+        fmt.Println("Warning: cf icd not successful, message from webhook: %s",e)
+        os.Exit(0)
+//        panic(e)
     }
 }

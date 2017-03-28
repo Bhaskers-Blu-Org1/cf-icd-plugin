@@ -1,6 +1,7 @@
 package otc
 
 import (
+    "fmt"
     "bytes"
     "net/http"
     "io/ioutil"
@@ -20,6 +21,8 @@ func Request(url string, method string, buf *bytes.Buffer) (string) {
 
 func check(e error) {
     if e != nil {
-        panic(e)
+        fmt.Println("Warning: cf icd not successful, message from otc: %s",e)
+        os.Exit(0)
+//        panic(e)
     }
 }
